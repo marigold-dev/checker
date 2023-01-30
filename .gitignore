@@ -13,9 +13,6 @@ src/getOracleEntrypoint.ml
 src/targetCalculation.ml
 src/cfmm.ml
 
-generated/michelson
-generated/ligo
-
 src/_input_checker.yaml
 
 _build
