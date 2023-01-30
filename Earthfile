@@ -70,7 +70,7 @@ deps-full:
     # To improve caching, first install dependencies only
     COPY pyproject.toml .
     COPY poetry.lock .
-    RUN poetry config virtualenvs.in-project true && poetry install --no-root
+    RUN POETRY_VIRTUALENVS_CREATE=true poetry install --no-root
     # Then install the package itself
     COPY ./checker_tools ./checker_tools
     RUN poetry install
