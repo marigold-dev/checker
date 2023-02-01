@@ -34,7 +34,7 @@
    * end, so that the system parameters do not change between touching
    * different slices. *)
   let op_ctez_price =
-    let cb = match (Tezos.get_entrypoint_opt "%receive_ctez_marginal_price" Tezos.self_address : ((nat * nat) contract) option) with
+    let cb = match (Tezos.get_entrypoint_opt "%receive_ctez_marginal_price" (Tezos.get_self_address ()) : ((nat * nat) contract) option) with
       | Some cb -> cb
       | None -> (failwith error_GetEntrypointOptFailureReceiveCtezMarginalPrice : (nat * nat) contract) in
     Tezos.transaction

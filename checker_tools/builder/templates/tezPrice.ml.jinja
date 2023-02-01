@@ -34,7 +34,7 @@ let[@inline] calculate_kit_in_tok
    * end, so that the system parameters do not change between touching
    * different slices. *)
   let op_ctez_price =
-    let cb = match (LigoOp.Tezos.get_entrypoint_opt "%receive_ctez_marginal_price" !Ligo.Tezos.self_address : ((Ligo.nat * Ligo.nat) Ligo.contract) option) with
+    let cb = match (LigoOp.Tezos.get_entrypoint_opt "%receive_ctez_marginal_price" !Ligo.(Tezos.get_self_address ()) : ((Ligo.nat * Ligo.nat) Ligo.contract) option) with
       | Some cb -> cb
       | None -> (Ligo.failwith error_GetEntrypointOptFailureReceiveCtezMarginalPrice : (Ligo.nat * Ligo.nat) Ligo.contract) in
     LigoOp.Tezos.nat_nat_contract_transaction

@@ -59,8 +59,8 @@ let[@inline] cfmm_kit_in_ctok_in_prev_block (cfmm: cfmm) : ratio =
  * that this is not be the previous block, but the last block in which the
  * cfmm contract was touched. *)
 let cfmm_sync_last_observed (cfmm: cfmm) : cfmm =
-  assert (Ligo.geq_nat_nat !Ligo.Tezos.level cfmm.last_level);
-  if Ligo.leq_nat_nat !Ligo.Tezos.level cfmm.last_level then
+  assert (Ligo.geq_nat_nat !Ligo.(Tezos.get_level ()) cfmm.last_level);
+  if Ligo.leq_nat_nat !Ligo.(Tezos.get_level ()) cfmm.last_level then
     (* do nothing if it's been touched already in this block *)
     cfmm
   else
@@ -69,7 +69,7 @@ let cfmm_sync_last_observed (cfmm: cfmm) : cfmm =
         make_ratio
           (Ligo.mul_nat_int (ctok_to_denomination_nat cfmm.ctok) kit_scaling_factor_int)
           (Ligo.mul_nat_int (kit_to_denomination_nat cfmm.kit) ctok_scaling_factor_int);
-      last_level = !Ligo.Tezos.level;
+      last_level = !Ligo.(Tezos.get_level ());
     }
 
 (** Compute the maximum [min_kit_expected] for [cfmm_buy_kit] to succeed. *)
@@ -123,7 +123,7 @@ let cfmm_buy_kit
   : (kit * cfmm) =
   if (eq_ctok_ctok ctok_amount ctok_zero) then
     (Ligo.failwith error_BuyKitNoCtokGiven : (kit * cfmm))
-  else if (Ligo.geq_timestamp_timestamp !Ligo.Tezos.now deadline) then
+  else if (Ligo.geq_timestamp_timestamp !Ligo.(Tezos.get_now ()) deadline) then
     (Ligo.failwith error_CfmmTooLate : (kit * cfmm))
   else if (eq_kit_kit min_kit_expected kit_zero) then
     (Ligo.failwith error_BuyKitTooLowExpectedKit : (kit * cfmm))
@@ -186,7 +186,7 @@ let cfmm_sell_kit
   : (ctok * cfmm) =
   if (eq_kit_kit kit_amount kit_zero) then
     (Ligo.failwith error_SellKitNoKitGiven : (ctok * cfmm))
-  else if Ligo.geq_timestamp_timestamp !Ligo.Tezos.now deadline then
+  else if Ligo.geq_timestamp_timestamp !Ligo.(Tezos.get_now ()) deadline then
     (Ligo.failwith error_CfmmTooLate : (ctok * cfmm))
   else if (eq_ctok_ctok min_ctok_expected ctok_zero) then
     (Ligo.failwith error_SellKitTooLowExpectedCtok : (ctok * cfmm))
@@ -251,7 +251,7 @@ let cfmm_add_liquidity
     (min_lqt_minted: lqt)
     (deadline: Ligo.timestamp)
   : (lqt * kit * cfmm) =
-  if Ligo.geq_timestamp_timestamp !Ligo.Tezos.now deadline then
+  if Ligo.geq_timestamp_timestamp !Ligo.(Tezos.get_now ()) deadline then
     (Ligo.failwith error_CfmmTooLate : (lqt * kit * cfmm))
   else if eq_ctok_ctok ctok_amount ctok_zero then
     (Ligo.failwith error_AddLiquidityNoCtokGiven : (lqt * kit * cfmm))
@@ -328,7 +328,7 @@ let cfmm_remove_liquidity
     (min_kit_withdrawn: kit)
     (deadline: Ligo.timestamp)
   : (ctok * kit * cfmm) =
-  if Ligo.geq_timestamp_timestamp !Ligo.Tezos.now deadline then
+  if Ligo.geq_timestamp_timestamp !Ligo.(Tezos.get_now ()) deadline then
     (Ligo.failwith error_CfmmTooLate : (ctok * kit * cfmm))
   else if eq_lqt_lqt lqt_burned lqt_zero then
     (Ligo.failwith error_RemoveLiquidityNoLiquidityBurned : (ctok * kit * cfmm))

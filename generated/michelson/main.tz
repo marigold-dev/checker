@@ -2,7 +2,7 @@
     (or (or (or %checkerEntrypoint
                (or %lazyParams
                   (or (or (or (or (pair %activate_burrow nat nat)
-                                  (pair %add_liquidity (pair nat nat) (pair nat timestamp)))
+                                  (pair %add_liquidity (pair nat nat) nat timestamp))
                               (or (pair %burn_kit nat nat) (pair %buy_kit (pair nat nat) timestamp)))
                           (or (or (nat %cancel_liquidation_slice)
                                   (pair %create_burrow (pair nat (option key_hash)) nat))
@@ -11,13 +11,13 @@
                                   (pair %liquidation_auction_place_bid nat nat))
                               (or (pair %mark_for_liquidation address nat) (pair %mint_kit nat nat)))
                           (or (or (pair %receive_ctez_marginal_price nat nat) (pair %receive_price nat nat))
-                              (or (pair %remove_liquidity (pair nat nat) (pair nat timestamp))
+                              (or (pair %remove_liquidity (pair nat nat) nat timestamp)
                                   (pair %sell_kit (pair nat nat) timestamp)))))
                   (or (or (or (pair %set_burrow_delegate nat (option key_hash)) (unit %touch))
                           (or (pair %touch_burrow address nat) (list %touch_liquidation_slices nat)))
                       (or (list %update_operators
-                             (or (pair %add_operator (address %owner) (pair (address %operator) (nat %token_id)))
-                                 (pair %remove_operator (address %owner) (pair (address %operator) (nat %token_id)))))
+                             (or (pair %add_operator (address %owner) (address %operator) (nat %token_id))
+                                 (pair %remove_operator (address %owner) (address %operator) (nat %token_id))))
                           (pair %withdraw_collateral nat nat))))
                (or %strictParams
                   (pair %balance_of
@@ -25,137 +25,128 @@
                      (contract %callback
                         (list (pair (pair %request (address %owner) (nat %token_id)) (nat %balance)))))
                   (list %transfer
-                     (pair (address %from_)
-                           (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount))))))))
+                     (pair (address %from_) (list %txs (pair (address %to_) (nat %token_id) (nat %amount)))))))
             (pair %deployFunction int bytes))
         (or (bytes %deployMetadata)
             (pair %sealContract
                (pair (address %collateral_fa2) (address %ctez_cfmm))
-               (pair (address %ctok_fa2) (address %oracle))))) ;
+               (address %ctok_fa2)
+               (address %oracle)))) ;
   storage
     (pair (big_map %lazy_functions int bytes)
-          (pair (big_map %metadata string bytes)
-                (or %deployment_state
-                   (pair %sealed
-                      (pair (pair (big_map %burrows
-                                     (pair address nat)
-                                     (pair (pair (pair (bool %active) (address %address))
-                                                 (pair (int %adjustment_index) (nat %collateral)))
-                                           (pair (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
-                                                 (nat %outstanding_kit))))
-                                  (pair %cfmm
-                                     (pair (pair (nat %ctok) (nat %kit))
-                                           (pair (pair %kit_in_ctok_in_prev_block (int %den) (int %num)) (nat %last_level)))
-                                     (nat %lqt)))
-                            (pair (pair %external_contracts
-                                     (pair (address %collateral_fa2) (address %ctez_cfmm))
-                                     (pair (address %ctok_fa2) (address %oracle)))
-                                  (pair %fa2_state
-                                     (big_map %ledger (pair nat address) nat)
-                                     (big_map %operators (pair (pair address address) nat) unit))))
-                      (pair (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
-                            (pair (pair %liquidation_auctions
-                                     (pair (pair (pair %avl_storage
-                                                    (nat %last_ptr)
-                                                    (big_map %mem
-                                                       nat
-                                                       (or (or (pair %branch
-                                                                  (pair (pair (nat %left) (nat %left_height)) (pair (nat %left_tok) (nat %parent)))
-                                                                  (pair (pair (nat %right) (nat %right_height)) (nat %right_tok)))
-                                                               (pair %leaf
-                                                                  (nat %parent)
-                                                                  (pair %value
-                                                                     (pair (pair %contents
-                                                                              (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
-                                                                              (nat %tok))
-                                                                           (option %older nat))
-                                                                     (option %younger nat))))
-                                                           (pair %root
-                                                              (option nat)
-                                                              (option
-                                                                 (pair (pair (option %older_auction nat) (nat %sold_tok))
-                                                                       (pair (pair %winning_bid (address %address) (nat %kit))
-                                                                             (option %younger_auction nat))))))))
-                                                 (big_map %burrow_slices
-                                                    (pair address nat)
-                                                    (pair (nat %oldest_slice) (nat %youngest_slice))))
-                                           (pair (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
-                                                 (option %current_auction
-                                                    (pair (nat %contents)
-                                                          (or %state
-                                                             (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
-                                                             (pair %descending nat timestamp))))))
-                                     (nat %queued_slices))
-                                  (pair %parameters
-                                     (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
-                                                 (pair (int %drift) (int %drift_derivative)))
-                                           (pair (pair (int %imbalance_index) (int %index))
-                                                 (pair (timestamp %last_touched) (nat %outstanding_kit))))
-                                     (pair (pair (int %protected_index) (int %q)) (int %target))))))
-                   (address %unsealed)))) ;
-  code { PUSH int 18446744073709551616 ;
-         EMPTY_BIG_MAP (pair (pair address address) nat) unit ;
-         EMPTY_BIG_MAP (pair nat address) nat ;
+          (big_map %metadata string bytes)
+          (or %deployment_state
+             (pair %sealed
+                (pair (pair (big_map %burrows
+                               (pair address nat)
+                               (pair (pair (pair (bool %active) (address %address))
+                                           (int %adjustment_index)
+                                           (nat %collateral))
+                                     (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
+                                     (nat %outstanding_kit)))
+                            (pair %cfmm
+                               (pair (pair (nat %ctok) (nat %kit))
+                                     (pair %kit_in_ctok_in_prev_block (int %den) (int %num))
+                                     (nat %last_level))
+                               (nat %lqt)))
+                      (pair %external_contracts
+                         (pair (address %collateral_fa2) (address %ctez_cfmm))
+                         (address %ctok_fa2)
+                         (address %oracle))
+                      (pair %fa2_state
+                         (big_map %ledger (pair nat address) nat)
+                         (big_map %operators (pair (pair address address) nat) unit)))
+                (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
+                (pair %liquidation_auctions
+                   (pair (pair (pair %avl_storage
+                                  (nat %last_ptr)
+                                  (big_map %mem
+                                     nat
+                                     (or (or (pair %branch
+                                                (pair (pair (nat %left) (nat %left_height)) (nat %left_tok) (nat %parent))
+                                                (pair (nat %right) (nat %right_height))
+                                                (nat %right_tok))
+                                             (pair %leaf
+                                                (nat %parent)
+                                                (pair %value
+                                                   (pair (pair %contents
+                                                            (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
+                                                            (nat %tok))
+                                                         (option %older nat))
+                                                   (option %younger nat))))
+                                         (pair %root
+                                            (option nat)
+                                            (option
+                                               (pair (pair (option %older_auction nat) (nat %sold_tok))
+                                                     (pair %winning_bid (address %address) (nat %kit))
+                                                     (option %younger_auction nat)))))))
+                               (big_map %burrow_slices
+                                  (pair address nat)
+                                  (pair (nat %oldest_slice) (nat %youngest_slice))))
+                         (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
+                         (option %current_auction
+                            (pair (nat %contents)
+                                  (or %state
+                                     (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
+                                     (pair %descending nat timestamp)))))
+                   (nat %queued_slices))
+                (pair %parameters
+                   (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
+                               (int %drift)
+                               (int %drift_derivative))
+                         (pair (int %imbalance_index) (int %index))
+                         (timestamp %last_touched)
+                         (nat %outstanding_kit))
+                   (pair (int %protected_index) (int %q))
+                   (int %target)))
+             (address %unsealed))) ;
+  code { NONE (pair (pair (option nat) nat) (pair address nat) (option nat)) ;
+         NONE nat ;
          PAIR ;
+         RIGHT
+           (or (pair (pair (pair nat nat) nat nat) (pair nat nat) nat)
+               (pair nat
+                     (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat)))) ;
          EMPTY_BIG_MAP
            nat
-           (or (or (pair (pair (pair nat nat) (pair nat nat)) (pair (pair nat nat) nat))
+           (or (or (pair (pair (pair nat nat) nat nat) (pair nat nat) nat)
                    (pair nat
                          (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat))))
-               (pair (option nat)
-                     (option (pair (pair (option nat) nat) (pair (pair address nat) (option nat)))))) ;
+               (pair (option nat) (option (pair (pair (option nat) nat) (pair address nat) (option nat))))) ;
          PUSH nat 0 ;
          PUSH nat 1 ;
          ADD ;
          DUP ;
          DIG 2 ;
-         NONE (pair (pair (option nat) nat) (pair (pair address nat) (option nat))) ;
-         NONE nat ;
-         PAIR ;
-         RIGHT
-           (or (pair (pair (pair nat nat) (pair nat nat)) (pair (pair nat nat) nat))
-               (pair nat
-                     (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat)))) ;
+         DIG 3 ;
          SOME ;
          DUP 4 ;
          UPDATE ;
          DIG 2 ;
          PAIR ;
-         SWAP ;
-         NONE (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp))) ;
-         NONE (pair nat nat) ;
          PAIR ;
-         EMPTY_BIG_MAP (pair address nat) (pair nat nat) ;
-         DIG 3 ;
-         PAIR ;
-         PAIR ;
-         PAIR ;
-         DIG 2 ;
-         DUP ;
-         DUP ;
-         DUP ;
-         DUG 5 ;
+         PUSH int 18446744073709551616 ;
+         PUSH int 18446744073709551616 ;
+         PUSH int 18446744073709551616 ;
          PAIR ;
          PAIR ;
          PUSH nat 0 ;
          NOW ;
          PAIR ;
-         DIG 4 ;
-         DUP ;
-         DUP ;
-         DUG 6 ;
+         PUSH int 18446744073709551616 ;
+         PUSH int 18446744073709551616 ;
          PAIR ;
          PAIR ;
          PUSH int 0 ;
          PUSH int 0 ;
          PAIR ;
          PUSH nat 0 ;
-         DIG 6 ;
+         PUSH int 18446744073709551616 ;
          PAIR ;
          PAIR ;
          PAIR ;
          PAIR ;
-         DIG 3 ;
+         DIG 2 ;
          UNPAIR ;
          PUSH mutez 0 ;
          AMOUNT ;
@@ -168,8 +159,7 @@
          IF_LEFT
            { DIG 4 ;
              DIG 5 ;
-             DIG 6 ;
-             DROP 3 ;
+             DROP 2 ;
              DIG 3 ;
              IF_LEFT
                { IF_LEFT
@@ -178,24 +168,23 @@
                            { IF_LEFT
                                { IF_LEFT
                                    { IF_LEFT
-                                       { IF_LEFT { PACK ; PUSH int 6 ; PAIR } { PACK ; PUSH int 15 ; PAIR } }
-                                       { IF_LEFT { PACK ; PUSH int 5 ; PAIR } { PACK ; PUSH int 13 ; PAIR } } }
+                                       { IF_LEFT { PACK ; PUSH int 6 } { PACK ; PUSH int 15 } }
+                                       { IF_LEFT { PACK ; PUSH int 5 } { PACK ; PUSH int 13 } } }
                                    { IF_LEFT
-                                       { IF_LEFT { PACK ; PUSH int 10 ; PAIR } { PACK ; PUSH int 1 ; PAIR } }
-                                       { IF_LEFT { PACK ; PUSH int 7 ; PAIR } { PACK ; PUSH int 2 ; PAIR } } } }
+                                       { IF_LEFT { PACK ; PUSH int 10 } { PACK ; PUSH int 1 } }
+                                       { IF_LEFT { PACK ; PUSH int 7 } { PACK ; PUSH int 2 } } } }
                                { IF_LEFT
                                    { IF_LEFT
-                                       { IF_LEFT { PACK ; PUSH int 18 ; PAIR } { PACK ; PUSH int 17 ; PAIR } }
-                                       { IF_LEFT { PACK ; PUSH int 8 ; PAIR } { PACK ; PUSH int 4 ; PAIR } } }
+                                       { IF_LEFT { PACK ; PUSH int 18 } { PACK ; PUSH int 17 } }
+                                       { IF_LEFT { PACK ; PUSH int 8 } { PACK ; PUSH int 4 } } }
                                    { IF_LEFT
-                                       { IF_LEFT { PACK ; PUSH int 20 ; PAIR } { PACK ; PUSH int 19 ; PAIR } }
-                                       { IF_LEFT { PACK ; PUSH int 16 ; PAIR } { PACK ; PUSH int 14 ; PAIR } } } } }
+                                       { IF_LEFT { PACK ; PUSH int 20 } { PACK ; PUSH int 19 } }
+                                       { IF_LEFT { PACK ; PUSH int 16 } { PACK ; PUSH int 14 } } } } }
                            { IF_LEFT
                                { IF_LEFT
-                                   { IF_LEFT { PACK ; PUSH int 12 ; PAIR } { PACK ; PUSH int 0 ; PAIR } }
-                                   { IF_LEFT { PACK ; PUSH int 11 ; PAIR } { PACK ; PUSH int 9 ; PAIR } } }
-                               { IF_LEFT { PACK ; PUSH int 21 ; PAIR } { PACK ; PUSH int 3 ; PAIR } } } ;
-                         UNPAIR ;
+                                   { IF_LEFT { PACK ; PUSH int 12 } { PACK ; PUSH int 0 } }
+                                   { IF_LEFT { PACK ; PUSH int 11 } { PACK ; PUSH int 9 } } }
+                               { IF_LEFT { PACK ; PUSH int 21 } { PACK ; PUSH int 3 } } } ;
                          SWAP ;
                          DIG 2 ;
                          PAIR ;
@@ -209,138 +198,150 @@
                                   (pair (pair (pair (pair (big_map %burrows
                                                              (pair address nat)
                                                              (pair (pair (pair (bool %active) (address %address))
-                                                                         (pair (int %adjustment_index) (nat %collateral)))
-                                                                   (pair (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
-                                                                         (nat %outstanding_kit))))
+                                                                         (int %adjustment_index)
+                                                                         (nat %collateral))
+                                                                   (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
+                                                                   (nat %outstanding_kit)))
                                                           (pair %cfmm
                                                              (pair (pair (nat %ctok) (nat %kit))
-                                                                   (pair (pair %kit_in_ctok_in_prev_block (int %den) (int %num)) (nat %last_level)))
+                                                                   (pair %kit_in_ctok_in_prev_block (int %den) (int %num))
+                                                                   (nat %last_level))
                                                              (nat %lqt)))
-                                                    (pair (pair %external_contracts
-                                                             (pair (address %collateral_fa2) (address %ctez_cfmm))
-                                                             (pair (address %ctok_fa2) (address %oracle)))
-                                                          (pair %fa2_state
-                                                             (big_map %ledger (pair nat address) nat)
-                                                             (big_map %operators (pair (pair address address) nat) unit))))
-                                              (pair (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
-                                                    (pair (pair %liquidation_auctions
-                                                             (pair (pair (pair %avl_storage
-                                                                            (nat %last_ptr)
-                                                                            (big_map %mem
-                                                                               nat
-                                                                               (or (or (pair %branch
-                                                                                          (pair (pair (nat %left) (nat %left_height)) (pair (nat %left_tok) (nat %parent)))
-                                                                                          (pair (pair (nat %right) (nat %right_height)) (nat %right_tok)))
-                                                                                       (pair %leaf
-                                                                                          (nat %parent)
-                                                                                          (pair %value
-                                                                                             (pair (pair %contents
-                                                                                                      (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
-                                                                                                      (nat %tok))
-                                                                                                   (option %older nat))
-                                                                                             (option %younger nat))))
-                                                                                   (pair %root
-                                                                                      (option nat)
-                                                                                      (option
-                                                                                         (pair (pair (option %older_auction nat) (nat %sold_tok))
-                                                                                               (pair (pair %winning_bid (address %address) (nat %kit))
-                                                                                                     (option %younger_auction nat))))))))
-                                                                         (big_map %burrow_slices
-                                                                            (pair address nat)
-                                                                            (pair (nat %oldest_slice) (nat %youngest_slice))))
-                                                                   (pair (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
-                                                                         (option %current_auction
-                                                                            (pair (nat %contents)
-                                                                                  (or %state
-                                                                                     (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
-                                                                                     (pair %descending nat timestamp))))))
-                                                             (nat %queued_slices))
-                                                          (pair %parameters
-                                                             (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
-                                                                         (pair (int %drift) (int %drift_derivative)))
-                                                                   (pair (pair (int %imbalance_index) (int %index))
-                                                                         (pair (timestamp %last_touched) (nat %outstanding_kit))))
-                                                             (pair (pair (int %protected_index) (int %q)) (int %target))))))
+                                                    (pair %external_contracts
+                                                       (pair (address %collateral_fa2) (address %ctez_cfmm))
+                                                       (address %ctok_fa2)
+                                                       (address %oracle))
+                                                    (pair %fa2_state
+                                                       (big_map %ledger (pair nat address) nat)
+                                                       (big_map %operators (pair (pair address address) nat) unit)))
+                                              (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
+                                              (pair %liquidation_auctions
+                                                 (pair (pair (pair %avl_storage
+                                                                (nat %last_ptr)
+                                                                (big_map %mem
+                                                                   nat
+                                                                   (or (or (pair %branch
+                                                                              (pair (pair (nat %left) (nat %left_height)) (nat %left_tok) (nat %parent))
+                                                                              (pair (nat %right) (nat %right_height))
+                                                                              (nat %right_tok))
+                                                                           (pair %leaf
+                                                                              (nat %parent)
+                                                                              (pair %value
+                                                                                 (pair (pair %contents
+                                                                                          (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
+                                                                                          (nat %tok))
+                                                                                       (option %older nat))
+                                                                                 (option %younger nat))))
+                                                                       (pair %root
+                                                                          (option nat)
+                                                                          (option
+                                                                             (pair (pair (option %older_auction nat) (nat %sold_tok))
+                                                                                   (pair %winning_bid (address %address) (nat %kit))
+                                                                                   (option %younger_auction nat)))))))
+                                                             (big_map %burrow_slices
+                                                                (pair address nat)
+                                                                (pair (nat %oldest_slice) (nat %youngest_slice))))
+                                                       (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
+                                                       (option %current_auction
+                                                          (pair (nat %contents)
+                                                                (or %state
+                                                                   (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
+                                                                   (pair %descending nat timestamp)))))
+                                                 (nat %queued_slices))
+                                              (pair %parameters
+                                                 (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
+                                                             (int %drift)
+                                                             (int %drift_derivative))
+                                                       (pair (int %imbalance_index) (int %index))
+                                                       (timestamp %last_touched)
+                                                       (nat %outstanding_kit))
+                                                 (pair (int %protected_index) (int %q))
+                                                 (int %target)))
                                         bytes)
                                   (pair (list operation)
-                                        (pair (pair (pair (big_map %burrows
-                                                             (pair address nat)
-                                                             (pair (pair (pair (bool %active) (address %address))
-                                                                         (pair (int %adjustment_index) (nat %collateral)))
-                                                                   (pair (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
-                                                                         (nat %outstanding_kit))))
-                                                          (pair %cfmm
-                                                             (pair (pair (nat %ctok) (nat %kit))
-                                                                   (pair (pair %kit_in_ctok_in_prev_block (int %den) (int %num)) (nat %last_level)))
-                                                             (nat %lqt)))
-                                                    (pair (pair %external_contracts
-                                                             (pair (address %collateral_fa2) (address %ctez_cfmm))
-                                                             (pair (address %ctok_fa2) (address %oracle)))
-                                                          (pair %fa2_state
-                                                             (big_map %ledger (pair nat address) nat)
-                                                             (big_map %operators (pair (pair address address) nat) unit))))
-                                              (pair (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
-                                                    (pair (pair %liquidation_auctions
-                                                             (pair (pair (pair %avl_storage
-                                                                            (nat %last_ptr)
-                                                                            (big_map %mem
-                                                                               nat
-                                                                               (or (or (pair %branch
-                                                                                          (pair (pair (nat %left) (nat %left_height)) (pair (nat %left_tok) (nat %parent)))
-                                                                                          (pair (pair (nat %right) (nat %right_height)) (nat %right_tok)))
-                                                                                       (pair %leaf
-                                                                                          (nat %parent)
-                                                                                          (pair %value
-                                                                                             (pair (pair %contents
-                                                                                                      (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
-                                                                                                      (nat %tok))
-                                                                                                   (option %older nat))
-                                                                                             (option %younger nat))))
-                                                                                   (pair %root
-                                                                                      (option nat)
-                                                                                      (option
-                                                                                         (pair (pair (option %older_auction nat) (nat %sold_tok))
-                                                                                               (pair (pair %winning_bid (address %address) (nat %kit))
-                                                                                                     (option %younger_auction nat))))))))
-                                                                         (big_map %burrow_slices
-                                                                            (pair address nat)
-                                                                            (pair (nat %oldest_slice) (nat %youngest_slice))))
-                                                                   (pair (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
-                                                                         (option %current_auction
-                                                                            (pair (nat %contents)
-                                                                                  (or %state
-                                                                                     (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
-                                                                                     (pair %descending nat timestamp))))))
-                                                             (nat %queued_slices))
-                                                          (pair %parameters
-                                                             (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
-                                                                         (pair (int %drift) (int %drift_derivative)))
-                                                                   (pair (pair (int %imbalance_index) (int %index))
-                                                                         (pair (timestamp %last_touched) (nat %outstanding_kit))))
-                                                             (pair (pair (int %protected_index) (int %q)) (int %target)))))))) ;
+                                        (pair (pair (big_map %burrows
+                                                       (pair address nat)
+                                                       (pair (pair (pair (bool %active) (address %address))
+                                                                   (int %adjustment_index)
+                                                                   (nat %collateral))
+                                                             (pair (nat %collateral_at_auction) (timestamp %last_checker_timestamp))
+                                                             (nat %outstanding_kit)))
+                                                    (pair %cfmm
+                                                       (pair (pair (nat %ctok) (nat %kit))
+                                                             (pair %kit_in_ctok_in_prev_block (int %den) (int %num))
+                                                             (nat %last_level))
+                                                       (nat %lqt)))
+                                              (pair %external_contracts
+                                                 (pair (address %collateral_fa2) (address %ctez_cfmm))
+                                                 (address %ctok_fa2)
+                                                 (address %oracle))
+                                              (pair %fa2_state
+                                                 (big_map %ledger (pair nat address) nat)
+                                                 (big_map %operators (pair (pair address address) nat) unit)))
+                                        (pair (option %last_ctez_in_tez (pair (int %den) (int %num))) (option %last_index int))
+                                        (pair %liquidation_auctions
+                                           (pair (pair (pair %avl_storage
+                                                          (nat %last_ptr)
+                                                          (big_map %mem
+                                                             nat
+                                                             (or (or (pair %branch
+                                                                        (pair (pair (nat %left) (nat %left_height)) (nat %left_tok) (nat %parent))
+                                                                        (pair (nat %right) (nat %right_height))
+                                                                        (nat %right_tok))
+                                                                     (pair %leaf
+                                                                        (nat %parent)
+                                                                        (pair %value
+                                                                           (pair (pair %contents
+                                                                                    (pair (pair %burrow address nat) (option %min_kit_for_unwarranted nat))
+                                                                                    (nat %tok))
+                                                                                 (option %older nat))
+                                                                           (option %younger nat))))
+                                                                 (pair %root
+                                                                    (option nat)
+                                                                    (option
+                                                                       (pair (pair (option %older_auction nat) (nat %sold_tok))
+                                                                             (pair %winning_bid (address %address) (nat %kit))
+                                                                             (option %younger_auction nat)))))))
+                                                       (big_map %burrow_slices
+                                                          (pair address nat)
+                                                          (pair (nat %oldest_slice) (nat %youngest_slice))))
+                                                 (option %completed_auctions (pair (nat %oldest) (nat %youngest)))
+                                                 (option %current_auction
+                                                    (pair (nat %contents)
+                                                          (or %state
+                                                             (pair %ascending (pair (pair (address %address) (nat %kit)) timestamp) nat)
+                                                             (pair %descending nat timestamp)))))
+                                           (nat %queued_slices))
+                                        (pair %parameters
+                                           (pair (pair (pair (int %burrow_fee_index) (nat %circulating_kit))
+                                                       (int %drift)
+                                                       (int %drift_derivative))
+                                                 (pair (int %imbalance_index) (int %index))
+                                                 (timestamp %last_touched)
+                                                 (nat %outstanding_kit))
+                                           (pair (int %protected_index) (int %q))
+                                           (int %target)))) ;
                              IF_NONE { PUSH int 150 ; FAILWITH } {} } ;
                          SWAP ;
                          EXEC }
                        { IF_LEFT
                            { UNPAIR ;
-                             DUP 3 ;
-                             CAR ;
-                             CDR ;
-                             CDR ;
-                             SWAP ;
                              MAP { DUP ;
                                    UNPAIR ;
-                                   DUP 4 ;
                                    PUSH nat 1 ;
-                                   DUP 4 ;
+                                   DUP 3 ;
                                    COMPARE ;
                                    EQ ;
                                    PUSH nat 0 ;
-                                   DUP 5 ;
+                                   DUP 4 ;
                                    COMPARE ;
                                    EQ ;
                                    OR ;
                                    IF {} { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } ;
+                                   DUP 5 ;
+                                   CAR ;
+                                   CDR ;
+                                   CDR ;
                                    CAR ;
                                    SWAP ;
                                    DIG 2 ;
@@ -350,32 +351,24 @@
                                    SWAP ;
                                    PAIR } ;
                              SWAP ;
-                             DROP ;
-                             SWAP ;
                              PUSH mutez 0 ;
                              DIG 2 ;
                              TRANSFER_TOKENS ;
                              SWAP ;
                              NIL operation ;
                              DIG 2 ;
-                             CONS ;
-                             PAIR }
-                           { SWAP ;
-                             DUP ;
+                             CONS }
+                           { DUP 2 ;
                              CDR ;
-                             DUG 2 ;
-                             DUP ;
-                             DUG 3 ;
+                             DUP 3 ;
                              CAR ;
                              CDR ;
                              CDR ;
-                             SWAP ;
+                             DIG 2 ;
                              ITER { UNPAIR ;
                                     DUG 2 ;
                                     ITER { UNPAIR 3 ;
-                                           SWAP ;
-                                           DUP ;
-                                           DUG 2 ;
+                                           DUP 2 ;
                                            DUP 6 ;
                                            PAIR ;
                                            SENDER ;
@@ -384,9 +377,8 @@
                                            UNPAIR ;
                                            DIG 2 ;
                                            CDR ;
-                                           DUG 2 ;
-                                           DUP ;
-                                           DUG 3 ;
+                                           DIG 2 ;
+                                           DUP 3 ;
                                            DUP 5 ;
                                            PAIR ;
                                            PAIR ;
@@ -405,28 +397,20 @@
                                                 EQ ;
                                                 OR ;
                                                 IF {} { PUSH string "FA2_TOKEN_UNDEFINED" ; FAILWITH } ;
-                                                DUP 3 ;
-                                                DUP 6 ;
-                                                PAIR ;
-                                                DUP 3 ;
-                                                DIG 5 ;
-                                                DIG 2 ;
-                                                UNPAIR ;
-                                                DUP 3 ;
+                                                DUP 4 ;
                                                 CAR ;
-                                                SWAP ;
-                                                DIG 4 ;
+                                                DUP 6 ;
+                                                DUP 4 ;
                                                 PAIR ;
-                                                DUG 2 ;
-                                                DUP ;
-                                                DUG 3 ;
+                                                DUP 5 ;
+                                                DUP 3 ;
                                                 DUP 3 ;
                                                 GET ;
                                                 IF_NONE { PUSH nat 0 } {} ;
                                                 SUB ;
                                                 ISNAT ;
                                                 IF_NONE { PUSH string "FA2_INSUFFICIENT_BALANCE" ; FAILWITH } {} ;
-                                                DIG 3 ;
+                                                DIG 6 ;
                                                 CDR ;
                                                 PUSH nat 0 ;
                                                 DUP 3 ;
@@ -435,16 +419,13 @@
                                                 IF { SWAP ; DROP ; DUG 2 ; NONE nat ; SWAP ; UPDATE }
                                                    { DIG 3 ; DIG 2 ; DIG 3 ; SWAP ; SOME ; SWAP ; UPDATE } ;
                                                 PAIR ;
-                                                DIG 3 ;
-                                                DIG 2 ;
-                                                DUP 3 ;
-                                                CAR ;
-                                                SWAP ;
-                                                DIG 4 ;
-                                                PAIR ;
-                                                DUG 2 ;
                                                 DUP ;
-                                                DUG 3 ;
+                                                CAR ;
+                                                DIG 2 ;
+                                                DIG 3 ;
+                                                PAIR ;
+                                                DIG 3 ;
+                                                DUP 3 ;
                                                 DUP 3 ;
                                                 GET ;
                                                 IF_NONE { PUSH nat 0 } {} ;
@@ -471,8 +452,8 @@
                              CAR ;
                              PAIR ;
                              PAIR ;
-                             NIL operation ;
-                             PAIR } } }
+                             NIL operation } ;
+                         PAIR } }
                    { DROP 2 ; PUSH int 135 ; FAILWITH } }
                { SWAP ;
                  DROP ;
@@ -495,8 +476,7 @@
                   IF_LEFT
                     { DIG 4 ;
                       DIG 5 ;
-                      DIG 6 ;
-                      DROP 3 ;
+                      DROP 2 ;
                       IF_LEFT
                         { DROP 4 ; PUSH int 134 ; FAILWITH }
                         { UNPAIR ;
@@ -504,25 +484,23 @@
                           RIGHT
                             (pair (pair (pair (big_map
                                                  (pair address nat)
-                                                 (pair (pair (pair bool address) (pair int nat)) (pair (pair nat timestamp) nat)))
-                                              (pair (pair (pair nat nat) (pair (pair int int) nat)) nat))
-                                        (pair (pair (pair address address) (pair address address))
-                                              (pair (big_map (pair nat address) nat) (big_map (pair (pair address address) nat) unit))))
-                                  (pair (pair (option (pair int int)) (option int))
-                                        (pair (pair (pair (pair (pair nat
-                                                                      (big_map
-                                                                         nat
-                                                                         (or (or (pair (pair (pair nat nat) (pair nat nat)) (pair (pair nat nat) nat))
-                                                                                 (pair nat
-                                                                                       (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat))))
-                                                                             (pair (option nat)
-                                                                                   (option (pair (pair (option nat) nat) (pair (pair address nat) (option nat))))))))
-                                                                (big_map (pair address nat) (pair nat nat)))
-                                                          (pair (option (pair nat nat))
-                                                                (option (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp))))))
-                                                    nat)
-                                              (pair (pair (pair (pair int nat) (pair int int)) (pair (pair int int) (pair timestamp nat)))
-                                                    (pair (pair int int) int))))) ;
+                                                 (pair (pair (pair bool address) int nat) (pair nat timestamp) nat))
+                                              (pair (pair (pair nat nat) (pair int int) nat) nat))
+                                        (pair (pair address address) address address)
+                                        (pair (big_map (pair nat address) nat) (big_map (pair (pair address address) nat) unit)))
+                                  (pair (option (pair int int)) (option int))
+                                  (pair (pair (pair (pair nat
+                                                          (big_map
+                                                             nat
+                                                             (or (or (pair (pair (pair nat nat) nat nat) (pair nat nat) nat)
+                                                                     (pair nat
+                                                                           (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat))))
+                                                                 (pair (option nat) (option (pair (pair (option nat) nat) (pair address nat) (option nat)))))))
+                                                    (big_map (pair address nat) (pair nat nat)))
+                                              (option (pair nat nat))
+                                              (option (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp)))))
+                                        nat)
+                                  (pair (pair (pair (pair int nat) int int) (pair int int) timestamp nat) (pair int int) int)) ;
                           DIG 4 ;
                           PAIR ;
                           DUP 4 ;
@@ -537,31 +515,28 @@
                     { IF_LEFT
                         { DIG 4 ;
                           DIG 5 ;
-                          DIG 6 ;
-                          DROP 3 ;
+                          DROP 2 ;
                           SWAP ;
                           RIGHT
                             (pair (pair (pair (big_map
                                                  (pair address nat)
-                                                 (pair (pair (pair bool address) (pair int nat)) (pair (pair nat timestamp) nat)))
-                                              (pair (pair (pair nat nat) (pair (pair int int) nat)) nat))
-                                        (pair (pair (pair address address) (pair address address))
-                                              (pair (big_map (pair nat address) nat) (big_map (pair (pair address address) nat) unit))))
-                                  (pair (pair (option (pair int int)) (option int))
-                                        (pair (pair (pair (pair (pair nat
-                                                                      (big_map
-                                                                         nat
-                                                                         (or (or (pair (pair (pair nat nat) (pair nat nat)) (pair (pair nat nat) nat))
-                                                                                 (pair nat
-                                                                                       (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat))))
-                                                                             (pair (option nat)
-                                                                                   (option (pair (pair (option nat) nat) (pair (pair address nat) (option nat))))))))
-                                                                (big_map (pair address nat) (pair nat nat)))
-                                                          (pair (option (pair nat nat))
-                                                                (option (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp))))))
-                                                    nat)
-                                              (pair (pair (pair (pair int nat) (pair int int)) (pair (pair int int) (pair timestamp nat)))
-                                                    (pair (pair int int) int))))) ;
+                                                 (pair (pair (pair bool address) int nat) (pair nat timestamp) nat))
+                                              (pair (pair (pair nat nat) (pair int int) nat) nat))
+                                        (pair (pair address address) address address)
+                                        (pair (big_map (pair nat address) nat) (big_map (pair (pair address address) nat) unit)))
+                                  (pair (option (pair int int)) (option int))
+                                  (pair (pair (pair (pair nat
+                                                          (big_map
+                                                             nat
+                                                             (or (or (pair (pair (pair nat nat) nat nat) (pair nat nat) nat)
+                                                                     (pair nat
+                                                                           (pair (pair (pair (pair (pair address nat) (option nat)) nat) (option nat)) (option nat))))
+                                                                 (pair (option nat) (option (pair (pair (option nat) nat) (pair address nat) (option nat)))))))
+                                                    (big_map (pair address nat) (pair nat nat)))
+                                              (option (pair nat nat))
+                                              (option (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp)))))
+                                        nat)
+                                  (pair (pair (pair (pair int nat) int int) (pair int int) timestamp nat) (pair int int) int)) ;
                           DUP 4 ;
                           PUSH string "m" ;
                           GET ;
@@ -570,9 +545,7 @@
                             { DIG 4 ; DIG 3 ; DIG 2 ; CONCAT ; SOME ; PUSH string "m" ; UPDATE } ;
                           PAIR ;
                           SWAP ;
-                          NIL operation ;
-                          PAIR ;
-                          PAIR }
+                          NIL operation }
                         { SWAP ;
                           DROP ;
                           DUP ;
@@ -584,15 +557,13 @@
                           CAR ;
                           CAR ;
                           CONTRACT %transfer
-                            (list (pair (address %from_)
-                                        (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))))) ;
+                            (list (pair (address %from_) (list %txs (pair (address %to_) (nat %token_id) (nat %amount))))) ;
                           IF_NONE { PUSH int 115 ; FAILWITH } { DROP } ;
                           DUP ;
                           CDR ;
                           CAR ;
                           CONTRACT %transfer
-                            (list (pair (address %from_)
-                                        (list %txs (pair (address %to_) (pair (nat %token_id) (nat %amount)))))) ;
+                            (list (pair (address %from_) (list %txs (pair (address %to_) (nat %token_id) (nat %amount))))) ;
                           IF_NONE { PUSH int 115 ; FAILWITH } { DROP } ;
                           DUP ;
                           CAR ;
@@ -602,16 +573,28 @@
                           SELF_ADDRESS ;
                           CONTRACT %touch unit ;
                           IF_NONE
-                            { PUSH int 4 ; NEG ; FAILWITH }
+                            { PUSH int -4 ; FAILWITH }
                             { PUSH mutez 0 ; UNIT ; TRANSFER_TOKENS } ;
                           DIG 4 ;
                           DIG 5 ;
+                          UNPAIR ;
+                          SWAP ;
+                          NONE (pair nat (or (pair (pair (pair address nat) timestamp) nat) (pair nat timestamp))) ;
+                          NONE (pair nat nat) ;
+                          PAIR ;
+                          EMPTY_BIG_MAP (pair address nat) (pair nat nat) ;
+                          DIG 3 ;
+                          PAIR ;
+                          PAIR ;
+                          PAIR ;
                           PAIR ;
                           NONE int ;
                           NONE (pair int int) ;
                           PAIR ;
                           PAIR ;
-                          DIG 5 ;
+                          EMPTY_BIG_MAP (pair (pair address address) nat) unit ;
+                          EMPTY_BIG_MAP (pair nat address) nat ;
+                          PAIR ;
                           DIG 3 ;
                           PAIR ;
                           PUSH nat 1 ;
@@ -627,7 +610,7 @@
                           PAIR ;
                           EMPTY_BIG_MAP
                             (pair address nat)
-                            (pair (pair (pair bool address) (pair int nat)) (pair (pair nat timestamp) nat)) ;
+                            (pair (pair (pair bool address) int nat) (pair nat timestamp) nat) ;
                           PAIR ;
                           PAIR ;
                           PAIR ;
@@ -641,10 +624,10 @@
                           DIG 2 ;
                           NIL operation ;
                           DIG 3 ;
-                          CONS ;
-                          PAIR ;
-                          PAIR } } }
-                { DROP 7 ; PUSH int 111 ; FAILWITH } } ;
+                          CONS } ;
+                      PAIR ;
+                      PAIR } }
+                { DROP 6 ; PUSH int 111 ; FAILWITH } } ;
          UNPAIR ;
          UNPAIR ;
          DIG 2 ;

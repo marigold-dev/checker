@@ -1,151 +1,6 @@
 {
   "views": [
     {
-      "name": "is_operator",
-      "parameter": {
-        "prim": "pair",
-        "args": [
-          {
-            "prim": "address"
-          },
-          {
-            "prim": "pair",
-            "args": [
-              {
-                "prim": "address"
-              },
-              {
-                "prim": "nat"
-              }
-            ]
-          }
-        ]
-      },
-      "returnType": {
-        "prim": "bool"
-      },
-      "code": [
-        {
-          "prim": "UNPAIR"
-        },
-        {
-          "prim": "UNPAIR"
-        },
-        {
-          "prim": "SWAP"
-        },
-        {
-          "prim": "UNPAIR"
-        },
-        {
-          "prim": "SWAP"
-        },
-        {
-          "prim": "DIG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "PAIR"
-        },
-        {
-          "prim": "SWAP"
-        },
-        {
-          "prim": "DIG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "CAR"
-        },
-        {
-          "prim": "CDR"
-        },
-        {
-          "prim": "DIG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "UNPAIR"
-        },
-        {
-          "prim": "DIG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "CDR"
-        },
-        {
-          "prim": "DUG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "DUP"
-        },
-        {
-          "prim": "DUG",
-          "args": [
-            {
-              "int": "3"
-            }
-          ]
-        },
-        {
-          "prim": "DUP",
-          "args": [
-            {
-              "int": "5"
-            }
-          ]
-        },
-        {
-          "prim": "PAIR"
-        },
-        {
-          "prim": "PAIR"
-        },
-        {
-          "prim": "MEM"
-        },
-        {
-          "prim": "DUG",
-          "args": [
-            {
-              "int": "2"
-            }
-          ]
-        },
-        {
-          "prim": "COMPARE"
-        },
-        {
-          "prim": "EQ"
-        },
-        {
-          "prim": "OR"
-        }
-      ]
-    },
-    {
       "name": "all_tokens",
       "parameter": {
         "prim": "unit"
@@ -183,6 +38,135 @@
         },
         {
           "prim": "CONS"
+        }
+      ]
+    },
+    {
+      "name": "get_balance",
+      "parameter": {
+        "prim": "pair",
+        "args": [
+          {
+            "prim": "address"
+          },
+          {
+            "prim": "nat"
+          }
+        ]
+      },
+      "returnType": {
+        "prim": "nat"
+      },
+      "code": [
+        {
+          "prim": "UNPAIR"
+        },
+        {
+          "prim": "UNPAIR"
+        },
+        {
+          "prim": "PUSH",
+          "args": [
+            {
+              "prim": "nat"
+            },
+            {
+              "int": "3"
+            }
+          ]
+        },
+        {
+          "prim": "DUP",
+          "args": [
+            {
+              "int": "3"
+            }
+          ]
+        },
+        {
+          "prim": "COMPARE"
+        },
+        {
+          "prim": "EQ"
+        },
+        {
+          "prim": "IF",
+          "args": [
+            [
+
+            ],
+            [
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "string"
+                  },
+                  {
+                    "string": "FA2_TOKEN_UNDEFINED"
+                  }
+                ]
+              },
+              {
+                "prim": "FAILWITH"
+              }
+            ]
+          ]
+        },
+        {
+          "prim": "DIG",
+          "args": [
+            {
+              "int": "2"
+            }
+          ]
+        },
+        {
+          "prim": "CAR"
+        },
+        {
+          "prim": "CDR"
+        },
+        {
+          "prim": "CAR"
+        },
+        {
+          "prim": "SWAP"
+        },
+        {
+          "prim": "DIG",
+          "args": [
+            {
+              "int": "2"
+            }
+          ]
+        },
+        {
+          "prim": "PAIR"
+        },
+        {
+          "prim": "GET"
+        },
+        {
+          "prim": "IF_NONE",
+          "args": [
+            [
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "nat"
+                  },
+                  {
+                    "int": "0"
+                  }
+                ]
+              }
+            ],
+            [
+
+            ]
+          ]
         }
       ]
     },
@@ -253,10 +237,13 @@
       ]
     },
     {
-      "name": "get_balance",
+      "name": "is_operator",
       "parameter": {
         "prim": "pair",
         "args": [
+          {
+            "prim": "address"
+          },
           {
             "prim": "address"
           },
@@ -266,7 +253,7 @@
         ]
       },
       "returnType": {
-        "prim": "nat"
+        "prim": "bool"
       },
       "code": [
         {
@@ -276,10 +263,16 @@
           "prim": "UNPAIR"
         },
         {
+          "prim": "SWAP"
+        },
+        {
+          "prim": "UNPAIR"
+        },
+        {
           "prim": "DIG",
           "args": [
             {
-              "int": "2"
+              "int": "3"
             }
           ]
         },
@@ -290,13 +283,13 @@
           "prim": "CDR"
         },
         {
-          "prim": "PUSH",
+          "prim": "CDR"
+        },
+        {
+          "prim": "DIG",
           "args": [
             {
-              "prim": "nat"
-            },
-            {
-              "int": "3"
+              "int": "2"
             }
           ]
         },
@@ -309,37 +302,21 @@
           ]
         },
         {
-          "prim": "COMPARE"
-        },
-        {
-          "prim": "EQ"
-        },
-        {
-          "prim": "IF",
+          "prim": "DUP",
           "args": [
-            [
-
-            ],
-            [
-              {
-                "prim": "PUSH",
-                "args": [
-                  {
-                    "prim": "string"
-                  },
-                  {
-                    "string": "FA2_TOKEN_UNDEFINED"
-                  }
-                ]
-              },
-              {
-                "prim": "FAILWITH"
-              }
-            ]
+            {
+              "int": "4"
+            }
           ]
         },
         {
-          "prim": "CAR"
+          "prim": "PAIR"
+        },
+        {
+          "prim": "PAIR"
+        },
+        {
+          "prim": "MEM"
         },
         {
           "prim": "SWAP"
@@ -353,31 +330,13 @@
           ]
         },
         {
-          "prim": "PAIR"
+          "prim": "COMPARE"
         },
         {
-          "prim": "GET"
+          "prim": "EQ"
         },
         {
-          "prim": "IF_NONE",
-          "args": [
-            [
-              {
-                "prim": "PUSH",
-                "args": [
-                  {
-                    "prim": "nat"
-                  },
-                  {
-                    "int": "0"
-                  }
-                ]
-              }
-            ],
-            [
-
-            ]
-          ]
+          "prim": "OR"
         }
       ]
     }

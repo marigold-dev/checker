@@ -13,6 +13,6 @@ let main (op, state: params * state): operation list * state =
     let op = Tezos.transaction state.price 0mutez cb in
     ([op], state)
   | Update new_price ->
-    if Tezos.sender = state.owner
+    if (Tezos.get_sender ()) = state.owner
     then (([]: operation list), {state with price = new_price })
     else failwith "unauthorized"

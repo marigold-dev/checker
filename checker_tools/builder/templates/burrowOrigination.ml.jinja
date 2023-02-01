@@ -5,9 +5,9 @@ open Fa2Interface
 let[@inline] originate_burrow (state: checker) (delegate_opt: Ligo.key_hash option) : LigoOp.operation * Ligo.address =
   LigoOp.Tezos.burrow_create_contract
     (fun (p, storage : burrow_parameter * burrow_storage) ->
-       if !Ligo.Tezos.sender <> storage.checker_address then
+       if !Ligo.(Tezos.get_sender ()) <> storage.checker_address then
          (Ligo.failwith (Ligo.int_from_literal "-1") : LigoOp.operation list * burrow_storage)
-       else if !Ligo.Tezos.amount <> Ligo.tez_from_literal "0mutez" then
+       else if !Ligo.(Tezos.get_amount ()) <> Ligo.tez_from_literal "0mutez" then
          (Ligo.failwith (Ligo.int_from_literal "-2") : LigoOp.operation list * burrow_storage)
        else
          match p with
@@ -20,7 +20,7 @@ let[@inline] originate_burrow (state: checker) (delegate_opt: Ligo.key_hash opti
          | BurrowTransfer p ->
            let (addr, amnt) = p in
            let transfer =
-             { from_ = !Ligo.Tezos.self_address; (* from: FA2 account of burrow contract *)
+             { from_ = !Ligo.(Tezos.get_self_address ()); (* from: FA2 account of burrow contract *)
                txs = [
                  { to_ = addr;                   (* to: FA2 account of the given address *)
                    token_id = Ligo.nat_from_literal "{{ config.tokens.in_use.collateral.token_id }}n";
@@ -40,6 +40,6 @@ let[@inline] originate_burrow (state: checker) (delegate_opt: Ligo.key_hash opti
     )
     delegate_opt
     (Ligo.tez_from_literal "0mutez") (* initially no collateral in it *)
-    { checker_address = !Ligo.Tezos.self_address;
+    { checker_address = !Ligo.(Tezos.get_self_address ());
       collateral_fa2 = state.external_contracts.collateral_fa2;
     }

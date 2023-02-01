@@ -36,7 +36,7 @@ let initial_parameters : parameters =
     imbalance_index = fixedpoint_one;
     outstanding_kit = kit_zero;
     circulating_kit = kit_zero;
-    last_touched = Tezos.now;
+    last_touched = Tezos.get_now ();
   }
 
 (** Compute the current minting index (in tok). To get tok/kit must multiply with q. *)
@@ -313,7 +313,7 @@ let compute_adjustment_index (p: parameters) : fixedpoint =
     (mul_int_int kit_scaling_factor_int (fixedpoint_to_raw last_imbalance_index))
 
 (** Update the checker's parameters, given (a) the current timestamp
-    (Tezos.now), (b) the current index (the median of the oracles right now),
+    (Tezos.get_now ()), (b) the current index (the median of the oracles right now),
     and (c) the current price of kit in tok. *)
 let parameters_touch
     (current_index: fixedpoint)
@@ -335,7 +335,7 @@ let parameters_touch
     } = parameters in
 
   (* Calculate the number of seconds elapsed. *)
-  let duration_in_seconds = sub_timestamp_timestamp Tezos.now parameters_last_touched in
+  let duration_in_seconds = sub_timestamp_timestamp (Tezos.get_now ()) parameters_last_touched in
 
 
   (* Update the indices *)
@@ -376,7 +376,7 @@ let parameters_touch
     imbalance_index = current_imbalance_index;
     outstanding_kit = current_outstanding_kit;
     circulating_kit = current_circulating_kit;
-    last_touched = Tezos.now;
+    last_touched = Tezos.get_now ();
   }
   )
 

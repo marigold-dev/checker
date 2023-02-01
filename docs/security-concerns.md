@@ -12,7 +12,7 @@ Michelson (see [issue](https://github.com/tezos-checker/huxian/issues/34)).
 Since this is not just about data that checker deals with internally, but
 refers to data sent over the wire, it is a serious hazard. For example, checker
 can issue a number of `kit` (e.g. via `%mintKit`) and send them to
-`Tezos.sender`, which then `Tezos.sender` can use as `liquidity` tokens to gain
+`(Tezos.get_sender ())`, which then `(Tezos.get_sender ())` can use as `liquidity` tokens to gain
 both `kit` and `tez` (e.g. via `%removeLiquidity`).
 
 Hopefully this is easy to fix, by tagging each kind of token with a different

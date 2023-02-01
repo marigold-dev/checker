@@ -106,7 +106,7 @@ let fraction_to_nat_floor (x_num: int) (x_den: int) : nat =
 
 (* Ensure that there is no tez given. To prevent accidental fund loss. *)
 let ensure_no_tez_given () =
-  if Tezos.amount <> 0mutez
+  if Tezos.get_amount () <> 0mutez
   then failwith error_UnwantedTezGiven
   else ()
 
