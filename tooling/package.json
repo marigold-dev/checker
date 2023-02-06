@@ -1,0 +1,29 @@
+{
+  "name": "checker-tooling",
+  "version": "0.0.1",
+  "description": "Tooling for all instances of the checker tezos smart contract.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node ./index.ts",
+    "start": "tsc && node dist/index.js"
+  },
+  "author": "Felipe Cardozo",
+  "license": "MIT",
+  "dependencies": {
+    "@taquito/michel-codec": "^15.1.0",
+    "@taquito/signer": "^15.1.0",
+    "@taquito/taquito": "^15.1.0",
+    "@taquito/tzip16": "^15.1.0",
+    "@tzstamp/helpers": "^0.3.4",
+    "dotenv": "^8.2.0",
+    "dotenv-defaults": "^2.0.1",
+    "minimist": "^1.2.5",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.2",
+    "eslint": "^7.25.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  }
+}
