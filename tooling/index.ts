@@ -113,6 +113,7 @@ async function run() {
     case "deploy":
       {
         // const contractName = argv?._[3];
+        const contracts = ["main"];
         const contractName = "main";
         await deploy(contractName);
       }
